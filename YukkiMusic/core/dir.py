@@ -13,7 +13,7 @@ import sys
 import logging
 from os import listdir, mkdir
 
-def dirr():
+def update_directories():
     assets_folder = "assets"
     downloads_folder = "downloads"
     cache_folder = "cache"
@@ -35,4 +35,4 @@ def dirr():
     logging.info("Directories Updated.")
 
 if __name__ == "__main__":
-    dirr()
+    update_directories()

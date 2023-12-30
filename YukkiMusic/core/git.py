@@ -16,30 +16,24 @@ from git import Repo
 from git.exc import GitCommandError, InvalidGitRepositoryError
 
 import config
-
 from ..logging import LOGGER
 
 loop = asyncio.get_event_loop_policy().get_event_loop()
 
 
-def install_req(cmd: str) -> Tuple[str, str, int, int]:
-    async def install_requirements():
-        args = shlex.split(cmd)
-        process = await asyncio.create_subprocess_exec(
-            *args,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-        stdout, stderr = await process.communicate()
-        return (
-            stdout.decode("utf-8", "replace").strip(),
-            stderr.decode("utf-8", "replace").strip(),
-            process.returncode,
-            process.pid,
-        )
-
-    return loop.run_until_complete(
-        install_requirements()
+async def install_requirements(cmd: str) -> Tuple[str, str, int, int]:
+    args = shlex.split(cmd)
+    process = await asyncio.create_subprocess_exec(
+        *args,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    stdout, stderr = await process.communicate()
+    return (
+        stdout.decode("utf-8", "replace").strip(),
+        stderr.decode("utf-8", "replace").strip(),
+        process.returncode,
+        process.pid,
     )
 
 
@@ -83,5 +77,6 @@ def git():
             nrs.pull(config.UPSTREAM_BRANCH)
         except GitCommandError:
             repo.git.reset("--hard", "FETCH_HEAD")
-        install_req("pip3 install --no-cache-dir -r requirements.txt")
+        install_req_cmd = "pip3 install --no-cache-dir -r requirements.txt"
+        result = loop.run_until_complete(install_requirements(install_req_cmd))
         LOGGER(__name__).info(f"Fetched Updates from: {REPO_LINK}")
