@@ -18,9 +18,9 @@ class Userbot(Client):
         self.assistants = []
         self.assistantids = []
 
-    async def start_assistant(self, number, session_string):
+    async def start_assistant(self, i, session_string):
         assistant = Client(
-            f"YukkiString{number}",
+            f"YukkiString{i}",
             api_id=config.API_ID,
             api_hash=config.API_HASH,
             session_string=str(session_string),
@@ -34,7 +34,7 @@ class Userbot(Client):
             await assistant.send_message(config.LOG_GROUP_ID, "Assistant Started")
         except:
             LOGGER(__name__).error(
-                f"Assistant Account {number} has failed to access the log Group. Make sure that you have added your assistant to your log group and promoted as admin! "
+                f"Assistant Account {i} has failed to access the log Group. Make sure that you have added your assistant to your log group and promoted as admin! "
             )
             sys.exit()
 
@@ -43,13 +43,14 @@ class Userbot(Client):
         assistant.id = get_me.id
         self.assistantids.append(get_me.id)
         assistant.name = f"{get_me.first_name} {get_me.last_name}" if get_me.last_name else get_me.first_name
-        LOGGER(__name__).info(f"Assistant {number} Started as {assistant.name}")
+        LOGGER(__name__).info(f"Assistant {i} Started as {assistant.name}")
 
     async def start(self):
         LOGGER(__name__).info(f"Starting Assistant Clients")
-        for number, session_string in enumerate([config.STRING1, config.STRING2, config.STRING3, config.STRING4, config.STRING5], start=1):
+        for i in range(1, 6):
+            session_string = getattr(config, f"STRING{i}", None)
             if session_string:
-                await self.start_assistant(number, session_string)
+                await self.start_assistant(i, session_string)
 
 if __name__ == "__main__":
     userbot = Userbot()
