@@ -10,7 +10,7 @@ motor==3.1.2
 ntgcalls
 pillow
 psutil
-git+https://github.com/pytgcalls/pytgcalls@dbb081ca295a74336f7ad5e1576dc021148578be
+py-tgcalls==1.0.0
 pykeyboard
 git+https://github.com/KurimuzonAkuma/pyrogram@dev
 python-dotenv
