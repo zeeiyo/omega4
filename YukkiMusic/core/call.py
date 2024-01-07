@@ -24,7 +24,7 @@ from pytgcalls.exceptions import (AlreadyJoinedError,
                                   TelegramServerError)
 from pytgcalls.types import (JoinedGroupCallParticipant,
                              LeftGroupCallParticipant, Update)
-from pytgcalls.types import MediaStream
+from pytgcalls.types.input_stream import AudioPiped, AudioVideoPiped
 from pytgcalls.types.stream import StreamAudioEnded
 import config
 from strings import get_string
@@ -155,13 +155,13 @@ class Call(PyTgCalls):
         audio_stream_quality = await get_audio_bitrate(chat_id)
         video_stream_quality = await get_video_bitrate(chat_id)
         stream = (
-            MediaStream(
+            AudioVideoPiped(
                 link,
                 audio_parameters=audio_stream_quality,
                 video_parameters=video_stream_quality,
             )
             if video
-            else MediaStream(
+            else AudioPiped(
                 link, audio_parameters=audio_stream_quality
             )
         )
@@ -177,14 +177,14 @@ class Call(PyTgCalls):
         audio_stream_quality = await get_audio_bitrate(chat_id)
         video_stream_quality = await get_video_bitrate(chat_id)
         stream = (
-            MediaStream(
+            AudioVideoPiped(
                 file_path,
                 audio_parameters=audio_stream_quality,
                 video_parameters=video_stream_quality,
                 additional_ffmpeg_parameters=f"-ss {to_seek} -t {duration}",
             )
             if mode == "video"
-            else MediaStream(
+            else AudioPiped(
                 file_path,
                 audio_parameters=audio_stream_quality,
                 additional_ffmpeg_parameters=f"-ss {to_seek} -t {duration}",
@@ -196,7 +196,7 @@ class Call(PyTgCalls):
         assistant = await group_assistant(self, config.LOG_GROUP_ID)
         await assistant.join_group_call(
             config.LOG_GROUP_ID,
-            MediaStream(link),
+            AudioVideoPiped(link),
         )
         await asyncio.sleep(0.5)
         await assistant.leave_group_call(config.LOG_GROUP_ID)
@@ -210,7 +210,7 @@ class Call(PyTgCalls):
                 get = await app.get_chat_member(chat_id, userbot.id)
             except ChatAdminRequired:
                 raise AssistantErr(_["call_1"])
-            if get.status in [ChatMemberStatus.BANNED, ChatMemberStatus.RESTRICTED]:
+            if get.status == ChatMemberStatus.BANNED or get.status == ChatMemberStatus.LEFT:
                 raise AssistantErr(
                     _["call_2"].format(userbot.username, userbot.id)
                 )
@@ -271,13 +271,13 @@ class Call(PyTgCalls):
         audio_stream_quality = await get_audio_bitrate(chat_id)
         video_stream_quality = await get_video_bitrate(chat_id)
         stream = (
-            MediaStream(
+            AudioVideoPiped(
                 link,
                 audio_parameters=audio_stream_quality,
                 video_parameters=video_stream_quality,
             )
             if video
-            else MediaStream(
+            else AudioPiped(
                 link, audio_parameters=audio_stream_quality
             )
         )
@@ -363,13 +363,13 @@ class Call(PyTgCalls):
                         text=_["call_9"],
                     )
                 stream = (
-                    MediaStream(
+                    AudioVideoPiped(
                         link,
                         audio_parameters=audio_stream_quality,
                         video_parameters=video_stream_quality,
                     )
                     if str(streamtype) == "video"
-                    else MediaStream(
+                    else AudioPiped(
                         link, audio_parameters=audio_stream_quality
                     )
                 )
@@ -402,20 +402,22 @@ class Call(PyTgCalls):
                         videoid,
                         mystic,
                         videoid=True,
-                        video=str(streamtype) == "video",
+                        video=True
+                        if str(streamtype) == "video"
+                        else False,
                     )
                 except:
                     return await mystic.edit_text(
                         _["call_9"], disable_web_page_preview=True
                     )
                 stream = (
-                    MediaStream(
+                    AudioVideoPiped(
                         file_path,
                         audio_parameters=audio_stream_quality,
                         video_parameters=video_stream_quality,
                     )
                     if str(streamtype) == "video"
-                    else MediaStream(
+                    else AudioPiped(
                         file_path,
                         audio_parameters=audio_stream_quality,
                     )
@@ -443,13 +445,13 @@ class Call(PyTgCalls):
                 db[chat_id][0]["markup"] = "stream"
             elif "index_" in queued:
                 stream = (
-                    MediaStream(
+                    AudioVideoPiped(
                         videoid,
                         audio_parameters=audio_stream_quality,
                         video_parameters=video_stream_quality,
                     )
                     if str(streamtype) == "video"
-                    else MediaStream(
+                    else AudioPiped(
                         videoid, audio_parameters=audio_stream_quality
                     )
                 )
@@ -471,13 +473,13 @@ class Call(PyTgCalls):
                 db[chat_id][0]["markup"] = "tg"
             else:
                 stream = (
-                    MediaStream(
+                    AudioVideoPiped(
                         queued,
                         audio_parameters=audio_stream_quality,
                         video_parameters=video_stream_quality,
                     )
                     if str(streamtype) == "video"
-                    else MediaStream(
+                    else AudioPiped(
                         queued, audio_parameters=audio_stream_quality
                     )
                 )
