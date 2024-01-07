@@ -1,24 +1,22 @@
 #
-# Copyright (C) 2021-present by TeamYukki@Github, < https://github.com/TeamYukki >.
+# Copyright (C) 2021-2022 by TeamYukki@Github, < https://github.com/TeamYukki >.
 #
 # This file is part of < https://github.com/TeamYukki/YukkiMusicBot > project,
 # and is released under the "GNU v3.0 License Agreement".
 # Please see < https://github.com/TeamYukki/YukkiMusicBot/blob/master/LICENSE >
 #
 # All rights reserved.
-#
 
 import asyncio
 from datetime import datetime, timedelta
 from typing import Union
 
 from pyrogram import Client
-from pyrogram.enums import ChatMemberStatus
 from pyrogram.errors import (ChatAdminRequired,
                              UserAlreadyParticipant,
                              UserNotParticipant)
 from pyrogram.types import InlineKeyboardMarkup
-from pytgcalls import PyTgCalls
+from pytgcalls import PyTgCalls, StreamType
 from pytgcalls.exceptions import (AlreadyJoinedError,
                                   NoActiveGroupCall,
                                   TelegramServerError)
@@ -26,6 +24,7 @@ from pytgcalls.types import (JoinedGroupCallParticipant,
                              LeftGroupCallParticipant, Update)
 from pytgcalls.types.input_stream import AudioPiped, AudioVideoPiped
 from pytgcalls.types.stream import StreamAudioEnded
+
 import config
 from strings import get_string
 from YukkiMusic import LOGGER, YouTube, app
@@ -60,50 +59,45 @@ async def _clear_(chat_id):
 class Call(PyTgCalls):
     def __init__(self):
         self.userbot1 = Client(
-            "YukkiString1",
             api_id=config.API_ID,
             api_hash=config.API_HASH,
-            session_string=str(config.STRING1),
+            session_name=str(config.STRING1),
         )
         self.one = PyTgCalls(
             self.userbot1,
             cache_duration=100,
         )
         self.userbot2 = Client(
-            "YukkiString2",
             api_id=config.API_ID,
             api_hash=config.API_HASH,
-            session_string=str(config.STRING2),
+            session_name=str(config.STRING2),
         )
         self.two = PyTgCalls(
             self.userbot2,
             cache_duration=100,
         )
         self.userbot3 = Client(
-            "YukkiString3",
             api_id=config.API_ID,
             api_hash=config.API_HASH,
-            session_string=str(config.STRING3),
+            session_name=str(config.STRING3),
         )
         self.three = PyTgCalls(
             self.userbot3,
             cache_duration=100,
         )
         self.userbot4 = Client(
-            "YukkiString4",
             api_id=config.API_ID,
             api_hash=config.API_HASH,
-            session_string=str(config.STRING4),
+            session_name=str(config.STRING4),
         )
         self.four = PyTgCalls(
             self.userbot4,
             cache_duration=100,
         )
         self.userbot5 = Client(
-            "YukkiString5",
             api_id=config.API_ID,
             api_hash=config.API_HASH,
-            session_string=str(config.STRING5),
+            session_name=str(config.STRING5),
         )
         self.five = PyTgCalls(
             self.userbot5,
@@ -181,13 +175,13 @@ class Call(PyTgCalls):
                 file_path,
                 audio_parameters=audio_stream_quality,
                 video_parameters=video_stream_quality,
-                additional_ffmpeg_parameters=f"-ss {to_seek} -t {duration}",
+                additional_ffmpeg_parameters=f"-ss {to_seek} -to {duration}",
             )
             if mode == "video"
             else AudioPiped(
                 file_path,
                 audio_parameters=audio_stream_quality,
-                additional_ffmpeg_parameters=f"-ss {to_seek} -t {duration}",
+                additional_ffmpeg_parameters=f"-ss {to_seek} -to {duration}",
             )
         )
         await assistant.change_stream(chat_id, stream)
@@ -197,6 +191,7 @@ class Call(PyTgCalls):
         await assistant.join_group_call(
             config.LOG_GROUP_ID,
             AudioVideoPiped(link),
+            stream_type=StreamType().pulse_stream,
         )
         await asyncio.sleep(0.5)
         await assistant.leave_group_call(config.LOG_GROUP_ID)
@@ -210,7 +205,7 @@ class Call(PyTgCalls):
                 get = await app.get_chat_member(chat_id, userbot.id)
             except ChatAdminRequired:
                 raise AssistantErr(_["call_1"])
-            if get.status == ChatMemberStatus.BANNED or get.status == ChatMemberStatus.LEFT:
+            if get.status == "banned" or get.status == "kicked":
                 raise AssistantErr(
                     _["call_2"].format(userbot.username, userbot.id)
                 )
@@ -285,6 +280,7 @@ class Call(PyTgCalls):
             await assistant.join_group_call(
                 chat_id,
                 stream,
+                stream_type=StreamType().pulse_stream,
             )
         except NoActiveGroupCall:
             try:
@@ -295,6 +291,7 @@ class Call(PyTgCalls):
                 await assistant.join_group_call(
                     chat_id,
                     stream,
+                    stream_type=StreamType().pulse_stream,
                 )
             except Exception as e:
                 raise AssistantErr(
@@ -582,7 +579,7 @@ class Call(PyTgCalls):
         @self.three.on_stream_end()
         @self.four.on_stream_end()
         @self.five.on_stream_end()
-        async def stream_end_handler(client, update: Update):
+        async def stream_end_handler1(client, update: Update):
             if not isinstance(update, StreamAudioEnded):
                 return
             await self.change_stream(client, update.chat_id)
