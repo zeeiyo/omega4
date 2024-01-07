@@ -7,13 +7,12 @@ gitpython
 hachoir
 heroku3
 lyricsgenius
-motor
-ntgcalls
+motor==3.1.2
 pillow
 psutil
+py-tgcalls==0.9.7
 pykeyboard
-py-tgcalls==1.0.0.rc2
-pyrogram
+git+https://github.com/KurimuzonAkuma/pyrogram@dev
 python-dotenv
 pyyaml
 requests
@@ -22,4 +21,4 @@ spotipy
 tgcrypto
 youtube-search
 youtube-search-python
-yt-dlp
+git+https://github.com/yt-dlp/yt-dlp@master
